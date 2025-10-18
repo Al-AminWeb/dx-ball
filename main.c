@@ -1,11 +1,4 @@
-/* dxball_aurora_deluxe_enhanced_no_overlay.c
-   DX-Ball — Aurora Deluxe Enhanced (no gray/black overlays)
-   Build:
-     Windows (MinGW + FreeGLUT):
-       gcc dxball_aurora_deluxe_enhanced_no_overlay.c -o dxball_aurora -lfreeglut -lopengl32 -lwinmm
-     Linux/macOS:
-       gcc dxball_aurora_deluxe_enhanced_no_overlay.c -o dxball_aurora -lglut -lGL -lm
-*/
+
 
 #include <GL/glut.h>
 #include <stdio.h>
@@ -30,7 +23,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-// ======= CONFIG =======
+
 #define WINDOW_W  960
 #define WINDOW_H  680
 #define PADDLE_H  18
@@ -43,7 +36,7 @@
 #define GLOW_LAYERS 8
 #define BOKEH_COUNT 24
 
-// ======= ENUMS / TYPES =======
+
 enum GameState { MENU, PLAYING, PAUSED, GAMEOVER, HIGHSCORE, WIN, HELP };
 enum PowerType { EXTRA_LIFE=0, FASTER_BALL=1, WIDER_PADDLE=2, SHRINK_PADDLE=3,
                  FIREBALL=4, THROUGH_BRICK=5, IMMEDIATE_DEATH=6, SHOOTING_PADDLE=7 };
@@ -54,7 +47,7 @@ typedef struct { float x,y,vx,vy,r; float life; int alive; float rot; float r_,g
 typedef struct { float x,y,vy; int type,alive; } PowerUp;
 typedef struct { float x,y,vy; int alive; } Bullet;
 
-// ======= GLOBALS =======
+
 Brick bricks[MAX_BRICKS]; int brickCount;
 Ball ball; int ballLaunched = 0;
 float paddleX, paddleW = 118, paddleY = 56;
@@ -67,7 +60,7 @@ Particle particles[MAX_PARTICLES]; int particleCount=0;
 PowerUp powers[MAX_POWERUPS]; int powerCount=0;
 Bullet bullets[MAX_BULLETS]; int bulletCount = 0;
 
-// Ball trail
+
 float trailX[TRAIL_LEN], trailY[TRAIL_LEN]; int trailHead=0;
 
 #define MENU_ITEMS 5
@@ -76,13 +69,13 @@ float dx_init = 3.8f, dy_init = 3.8f;
 
 char powerMsg[128] = ""; int powerMsgTimer = 0; int paddleCanShoot = 0; int bgPlaying = 0;
 
-// Screen shake
+
 float shakeTime=0.0f, shakeMag=0.0f;
 
-// Global time for animations
+
 float tGlobal=0.0f;
 
-// ======= HELPERS =======
+
 static inline float clampf(float v,float a,float b){ if(v<a) return a; if(v>b) return b; return v; }
 static inline float lerp(float a,float b,float t){ return a + (b-a)*t; }
 
@@ -112,7 +105,7 @@ static void playSound(const char *name, unsigned long flags){
 static void startBackground(){ if(!bgPlaying){ playSound("background.wav", SND_ASYNC | SND_LOOP); bgPlaying=1; } }
 static void stopBackground(){ if(bgPlaying){ PlaySound(NULL,NULL,SND_PURGE); bgPlaying=0; } }
 
-// ======= DRAW PRIMS =======
+
 static void drawCircle(float cx,float cy,float r,int seg){
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(cx,cy);
@@ -142,12 +135,12 @@ static void drawGradientRect(float x,float y,float w,float h, float r1,float g1,
     glColor3f(1,1,1);
 }
 
-// Vignette DISABLED (no overlay)
+
 static void drawVignette(void){ /* no-op */ }
 
-// ======= BACKGROUND =======
+
 static void drawBackground(){
-    // Radial aurora glows
+   
     glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     float cx = WINDOW_W * 0.5f, cy = WINDOW_H * 0.55f;
 
@@ -170,12 +163,12 @@ static void drawBackground(){
     }
     glDisable(GL_BLEND);
 
-    // Deep space gradient (opaque, not a dim overlay)
+ 
     drawGradientRect(0, 0, WINDOW_W, WINDOW_H,
                      0.04f, 0.05f, 0.10f,
                      0.01f, 0.01f, 0.04f);
 
-    // Bokeh lights
+  
     glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for(int i = 0; i < BOKEH_COUNT; i++){
         float phase = (float)i / BOKEH_COUNT * 2.0f * M_PI;
@@ -192,7 +185,7 @@ static void drawBackground(){
     glDisable(GL_BLEND);
 }
 
-// ======= COLORS =======
+
 static void brickColorByIdx(int idx, float *r,float *g,float *b){
     switch(idx%8){
         case 0: *r=0.17f; *g=0.82f; *b=0.52f; break;
@@ -207,7 +200,7 @@ static void brickColorByIdx(int idx, float *r,float *g,float *b){
     }
 }
 
-// ======= INIT / LEVELS =======
+
 static void clearArrays(){
     for(int i=0;i<MAX_PARTICLES;i++) particles[i].alive=0;
     for(int i=0;i<MAX_POWERUPS;i++) powers[i].alive=0;
@@ -237,7 +230,7 @@ static void resetBall(){
 static void startNewGame(){ level=1; score=0; lives=5; paddleW=118; clearArrays(); initBricks(); resetBall(); state=PLAYING; startBackground(); }
 static void resumeGame(){ state=PLAYING; startBackground(); }
 
-// ======= PARTICLES =======
+
 static void spawnParticles(float x,float y,int n, float r_,float g_,float b_){
     for(int i=0;i<n && particleCount<MAX_PARTICLES;i++){
         Particle p; p.x=x; p.y=y; float ang=((float)(rand()%360))*M_PI/180.0f; float spd=((float)(rand()%70))/14.0f + 1.1f;
@@ -266,7 +259,7 @@ static void updateParticles(){
     }
 }
 
-// ======= POWERUPS =======
+
 static void spawnPower(float x,float y,int type){
     if(powerCount>=MAX_POWERUPS) return;
     if(rand()%2!=0) return;
@@ -312,7 +305,7 @@ static void updatePowers(){
     }
 }
 
-// ======= BULLETS =======
+
 static void spawnBullet(float x,float y){
     if(!paddleCanShoot) return;
     for(int i=0;i<MAX_BULLETS;i++){
@@ -358,9 +351,9 @@ static void renderBullets(){
     }
 }
 
-// ======= COLLISIONS =======
+
 static void checkCollisions(){
-    // Paddle
+  
     if(ball.y - ball.r < paddleY + PADDLE_H && ball.x>paddleX && ball.x<paddleX+paddleW && ball.vy<0){
         ball.vy=fabsf(ball.vy);
         float hitPos=(ball.x - (paddleX+paddleW/2.0f))/(paddleW/2.0f);
@@ -368,7 +361,7 @@ static void checkCollisions(){
         ball.vy += 0.28f*fabsf(hitPos);
         playSound("hit.wav", SND_ASYNC);
     }
-    // Bricks
+  
     for(int i=0;i<brickCount;i++){
         if(!bricks[i].alive) continue;
         if(ball.x>bricks[i].x && ball.x<bricks[i].x+bricks[i].w && ball.y>bricks[i].y && ball.y<bricks[i].y+bricks[i].h){
@@ -385,7 +378,7 @@ static void checkCollisions(){
 }
 static int allBricksDestroyed(){ for(int i=0;i<brickCount;i++) if(bricks[i].alive) return 0; return 1; }
 
-// ======= PHYSICS =======
+
 static void pushTrail(float x,float y){ trailHead=(trailHead+1)%TRAIL_LEN; trailX[trailHead]=x; trailY[trailHead]=y; }
 
 static void updatePhysics(){
@@ -419,9 +412,9 @@ static void updatePhysics(){
     if(shakeTime>0.0f) shakeTime -= 0.016f; if(shakeTime<0.0f) shakeTime=0.0f;
 }
 
-// ======= RENDER HELPERS =======
+      
 static void drawEnhancedBall(){
-    // Trail
+   
     glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for(int i = 0; i < TRAIL_LEN; i++){
         int idx = (trailHead - i + TRAIL_LEN) % TRAIL_LEN;
@@ -431,7 +424,7 @@ static void drawEnhancedBall(){
         glColor4f(trailR, trailG, trailB, a * 0.8f);
         drawCircle(trailX[idx], trailY[idx], ball.r * (0.7f + t * 0.5f), 20);
     }
-    // Glow
+   
     float pulse = 0.8f + 0.2f * sinf(tGlobal * 8.0f);
     for(int layer = GLOW_LAYERS; layer >= 1; layer--){
         float progress = layer / (float)GLOW_LAYERS;
@@ -440,7 +433,7 @@ static void drawEnhancedBall(){
         glColor4f(glowR, glowG, glowB, a);
         drawCircle(ball.x, ball.y, ball.r + layer * 3.0f, 32);
     }
-    // Core
+
     glBegin(GL_TRIANGLE_FAN);
       glColor3f(1.0f, 0.95f, 0.75f);
       glVertex2f(ball.x, ball.y);
@@ -450,7 +443,7 @@ static void drawEnhancedBall(){
           glVertex2f(ball.x + cosf(angle) * ball.r, ball.y + sinf(angle) * ball.r);
       }
     glEnd();
-    // Highlight
+
     glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
     drawCircle(ball.x - ball.r * 0.3f, ball.y + ball.r * 0.3f, ball.r * 0.4f, 16);
     glDisable(GL_BLEND);
@@ -477,7 +470,7 @@ static void drawEnhancedHearts(int lives_, float x, float y){
     }
 }
 
-// Transparent HUD: just text + hearts (no panel overlay)
+
 static void drawEnhancedHUD(){
     glColor3f(0.95f, 0.96f, 1.0f);
     char hud[128]; sprintf(hud, "SCORE: %d  •  LEVEL: %d", score, level);
@@ -490,7 +483,7 @@ static void drawEnhancedHUD(){
     drawEnhancedHearts(lives, WINDOW_W - 320, WINDOW_H - 22);
 }
 
-// ======= SCREENS =======
+
 static void renderEnhancedMenu(void){
     glClear(GL_COLOR_BUFFER_BIT);
     drawBackground();
@@ -524,7 +517,7 @@ static void renderEnhancedMenu(void){
         drawString(WINDOW_W/2 - 160, WINDOW_H/2 + 60 - i*50, items[i]);
     }
 
-    drawVignette(); // no-op now
+    drawVignette(); 
     glutSwapBuffers();
 }
 
@@ -635,7 +628,7 @@ static void renderEnhancedScene(void){
             glTranslatef(sx,sy,0);
         }
 
-        // Bricks
+      
         for(int i = 0; i < brickCount; i++){
             if(!bricks[i].alive) continue;
             float r,g,b; brickColorByIdx(bricks[i].colorIdx,&r,&g,&b);
@@ -661,7 +654,7 @@ static void renderEnhancedScene(void){
             }
         }
 
-        // Paddle
+     
         glColor4f(0,0,0,0.25f);
         drawRoundedRect(paddleX+4, paddleY-4, paddleW, PADDLE_H, 9.0f);
         drawGradientRect(paddleX, paddleY, paddleW, PADDLE_H,
@@ -677,7 +670,7 @@ static void renderEnhancedScene(void){
             glDisable(GL_BLEND);
         }
 
-        // Ball, bullets, powerups
+      
         drawEnhancedBall();
         renderBullets();
 
@@ -712,7 +705,7 @@ static void renderEnhancedScene(void){
             drawString(WINDOW_W/2 - 90, WINDOW_H - 56, powerMsg);
         }
 
-        // NOTE: Pause dark overlay removed; keep glow text only
+       
         if(state == PAUSED){
             glEnable(GL_BLEND);
             for(int i = 2; i >= 1; i--){
@@ -730,7 +723,7 @@ static void renderEnhancedScene(void){
             drawString(WINDOW_W/2 - 170, WINDOW_H/2 - 22, "Click Mouse to Launch Ball (or press SPACE)");
         }
 
-        drawVignette(); // no-op
+        drawVignette();
         glutSwapBuffers();
         return;
     }
@@ -738,7 +731,7 @@ static void renderEnhancedScene(void){
     glutSwapBuffers();
 }
 
-// ======= TIMER =======
+
 static void updateTimer(int value){
     if(state == PLAYING) updatePhysics();
     tGlobal += 0.016f;
@@ -746,7 +739,7 @@ static void updateTimer(int value){
     glutTimerFunc(16, updateTimer, 0);
 }
 
-// ======= INPUT =======
+
 static void keyDown(unsigned char key,int x,int y){
     if(state == MENU){
         if(key == 13){
@@ -810,7 +803,7 @@ static void mouseClick(int button,int buttonState,int x,int y){
     }
 }
 
-// ======= MAIN / GL =======
+
 static void reshape(int w,int h){
     glViewport(0,0,w,h);
     glMatrixMode(GL_PROJECTION);
@@ -848,3 +841,4 @@ int main(int argc,char**argv){
     glutMainLoop();
     return 0;
 }
+
